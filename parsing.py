@@ -1,0 +1,1 @@
+#mengubah teks menjadi parsing python

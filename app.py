@@ -1,1 +1,55 @@
 #disini UI Streamlitnya
+
+"""Kalkulator Persamaan Nonlinier - Metode Regula Falsi.
+
+Jalankan dengan:  streamlit run app.py
+"""
+
+import pandas as pd
+import streamlit as st
+
+from parsing import parse_fungsi
+from regula_falsi import regula_falsi
+
+st.set_page_config(page_title="Kalkulator Regula Falsi", page_icon="📈", layout="wide")
+
+st.title("📈 Kalkulator Regula Falsi")
+st.caption("Mencari akar persamaan nonlinier f(x) = 0 dengan Metode Regula Falsi")
+
+# ---------- input ----------
+st.subheader("Input")
+
+f_teks = st.text_input(
+    "Fungsi f(x)",
+    value="x^3 - x - 2",
+    help="Contoh: x^3 - x - 2, cos(x) - x, exp(x) - 3*x",
+)
+
+kol1, kol2, kol3, kol4 = st.columns(4)
+a = kol1.number_input("Batas bawah (a)", value=1.0, format="%g")
+b = kol2.number_input("Batas atas (b)", value=2.0, format="%g")
+tol = kol3.number_input("Toleransi error", value=1e-6, min_value=0.0, format="%g")
+max_iter = kol4.number_input("Iterasi maksimum", value=100, min_value=1, step=1)
+
+hitung = st.button("Hitung", type="primary")
+
+# ---------- proses & hasil ----------
+if hitung:
+    try:
+        f = parse_fungsi(f_teks)
+        hasil = regula_falsi(f, a, b, tol, int(max_iter))
+    except Exception as e:
+        st.error(str(e))
+    else:
+        st.subheader("Hasil")
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Akar", f"{hasil.akar:.8g}")
+        m2.metric("Jumlah iterasi", hasil.iterasi)
+        m3.metric(
+            "Error akhir",
+            "-" if hasil.error is None else f"{hasil.error:.3e}",
+        )
+
+        st.subheader("Tabel iterasi")
+        st.dataframe(pd.DataFrame(hasil.tabel), hide_index=True)

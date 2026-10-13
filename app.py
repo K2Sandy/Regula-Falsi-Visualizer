@@ -1,5 +1,3 @@
-#disini UI Streamlitnya
-
 """Kalkulator Persamaan Nonlinier - Metode Regula Falsi.
 
 Jalankan dengan:  streamlit run app.py
@@ -8,6 +6,7 @@ Jalankan dengan:  streamlit run app.py
 import pandas as pd
 import streamlit as st
 
+from grafik import buat_grafik
 from parsing import parse_fungsi
 from regula_falsi import regula_falsi
 
@@ -38,7 +37,7 @@ if hitung:
     try:
         f = parse_fungsi(f_teks)
         hasil = regula_falsi(f, a, b, tol, int(max_iter))
-    except Exception as e:
+    except ValueError as e:
         st.error(str(e))
     else:
         st.subheader("Hasil")
@@ -51,5 +50,20 @@ if hitung:
             "-" if hasil.error is None else f"{hasil.error:.3e}",
         )
 
-        st.subheader("Tabel iterasi")
-        st.dataframe(pd.DataFrame(hasil.tabel), hide_index=True)
+        if hasil.konvergen:
+            st.success(hasil.alasan)
+        else:
+            st.warning(hasil.alasan)
+
+        kiri, kanan = st.columns(2)
+
+        with kiri:
+            st.subheader("Tabel iterasi")
+            if hasil.tabel:
+                st.dataframe(pd.DataFrame(hasil.tabel), hide_index=True)
+            else:
+                st.info("Tidak ada iterasi, akar sudah ada di ujung interval.")
+
+        with kanan:
+            st.subheader("Grafik")
+            st.pyplot(buat_grafik(f, a, b, hasil))

@@ -21,6 +21,17 @@ TRANSFORMASI = standard_transformations + (
     implicit_multiplication_application,
 )
 
+# e jadi bilangan euler, pi jadi 3.14159...
+LOKAL = {"x": X, "e": sp.E, "pi": sp.pi}
+
+def _baca(potongan, teks_asli):
+    try:
+        return parse_expr(potongan, local_dict=LOKAL, transformations=TRANSFORMASI)
+    except Exception:
+        raise ValueError(
+            f"Fungsi '{teks_asli}' tidak bisa dibaca. Contoh yang valid: x^3 - x - 2, "
+            f"cos(x) - x, exp(x) - 3*x, e^x - 3, x^3 - x - 1 = 0"
+        )
 
 def parse_fungsi(teks):
     """Ubah string seperti "x^3 - x - 2" menjadi fungsi Python f(x).

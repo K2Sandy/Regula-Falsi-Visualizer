@@ -20,20 +20,25 @@ st.subheader("Input")
 
 f_teks = st.text_input(
     "Fungsi f(x)",
-    value="x^3 - x - 2",
-    help="Contoh: x^3 - x - 2, cos(x) - x, exp(x) - 3*x",
+    value="",
+    placeholder="Contoh: x^3 - x - 2   atau   e^x - 3 = 0",
+    help="Contoh: x^3 - x - 2, cos(x) - x, exp(x) - 3*x, e^x - 3. Boleh pakai '= 0'.",
 )
 
 kol1, kol2, kol3, kol4 = st.columns(4)
-a = kol1.number_input("Batas bawah (a)", value=1.0, format="%g")
-b = kol2.number_input("Batas atas (b)", value=2.0, format="%g")
-tol = kol3.number_input("Toleransi error", value=1e-6, min_value=0.0, format="%g")
-max_iter = kol4.number_input("Iterasi maksimum", value=100, min_value=1, step=1)
+a = kol1.number_input("Batas bawah (a)", value=None, placeholder="Contoh: 1", format="%g")
+b = kol2.number_input("Batas atas (b)", value=None, placeholder="Contoh: 2", format="%g")
+tol = kol3.number_input("Toleransi error", value=None, min_value=0.0, placeholder="Contoh: 0.0001", format="%g")
+max_iter = kol4.number_input("Iterasi maksimum", value=None, min_value=1, step=1, placeholder="Contoh: 100")
 
 hitung = st.button("Hitung", type="primary")
 
 # ---------- proses & hasil ----------
 if hitung:
+    if not f_teks.strip() or None in (a, b, tol, max_iter):
+        st.warning("Lengkapi semua isian: fungsi, batas bawah, batas atas, toleransi, dan iterasi maksimum.")
+        st.stop()
+
     try:
         f = parse_fungsi(f_teks)
         hasil = regula_falsi(f, a, b, tol, int(max_iter))

@@ -1,5 +1,3 @@
-#mengubah teks menjadi parsing python
-
 """Mengubah teks f(x) dari pengguna menjadi fungsi Python yang bisa dihitung."""
 
 import math
@@ -21,17 +19,20 @@ TRANSFORMASI = standard_transformations + (
     implicit_multiplication_application,
 )
 
-# e jadi bilangan euler, pi jadi 3.14159...
+# nama yang dikenali: "e" jadi bilangan Euler, "pi" jadi 3,14159...
 LOKAL = {"x": X, "e": sp.E, "pi": sp.pi}
 
+
 def _baca(potongan, teks_asli):
+    """Ubah satu potongan teks menjadi ekspresi sympy."""
     try:
-        return parse_expr(potongan, local_dict=LOKAL, transformations=TRANSFORMASI)
+        return parse_expr(potongan, local_dict=dict(LOKAL), transformations=TRANSFORMASI)
     except Exception:
         raise ValueError(
             f"Fungsi '{teks_asli}' tidak bisa dibaca. Contoh yang valid: x^3 - x - 2, "
             f"cos(x) - x, exp(x) - 3*x, e^x - 3, x^3 - x - 1 = 0"
         )
+
 
 def parse_fungsi(teks):
     """Ubah string seperti "x^3 - x - 2" menjadi fungsi Python f(x).
@@ -44,8 +45,8 @@ def parse_fungsi(teks):
     if "__" in teks:
         raise ValueError("Teks fungsi mengandung karakter yang tidak diizinkan.")
 
-        if "=" in teks:
-            bagian = teks.split("=")
+    if "=" in teks:
+        bagian = teks.split("=")
         if len(bagian) != 2 or not bagian[0].strip() or not bagian[1].strip():
             raise ValueError(
                 "Format persamaan tidak valid. Pakai satu tanda '=', "

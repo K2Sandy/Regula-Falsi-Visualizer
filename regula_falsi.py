@@ -4,6 +4,7 @@ Rumus titik baru:
     c = (a * f(b) - b * f(a)) / (f(b) - f(a))
 """
 
+import math
 from dataclasses import dataclass, field
 
 
@@ -28,6 +29,11 @@ def regula_falsi(f, a, b, tol=1e-6, max_iter=100):
     Raise ValueError kalau input tidak valid.
     """
     # --- validasi input ---
+    if not all(math.isfinite(nilai) for nilai in (a, b, tol)):
+        raise ValueError(
+            "Batas interval dan toleransi harus berupa bilangan biasa "
+            "(bukan NaN atau tak hingga)."
+        )
     if not a < b:
         raise ValueError("Batas bawah (a) harus lebih kecil dari batas atas (b).")
     if tol <= 0:

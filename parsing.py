@@ -44,13 +44,17 @@ def parse_fungsi(teks):
     if "__" in teks:
         raise ValueError("Teks fungsi mengandung karakter yang tidak diizinkan.")
 
-    try:
-        ekspresi = parse_expr(teks, local_dict={"x": X}, transformations=TRANSFORMASI)
-    except Exception:
-        raise ValueError(
-            f"Fungsi '{teks}' tidak bisa dibaca. Contoh yang valid: x^3 - x - 2, "
-            f"cos(x) - x, exp(x) - 3*x"
-        )
+        if "=" in teks:
+            bagian = teks.split("=")
+        if len(bagian) != 2 or not bagian[0].strip() or not bagian[1].strip():
+            raise ValueError(
+                "Format persamaan tidak valid. Pakai satu tanda '=', "
+                "contoh: x^3 - x - 1 = 0"
+            )
+        # pindahkan sisi kanan ke kiri: kiri - kanan = 0
+        ekspresi = _baca(bagian[0], teks) - _baca(bagian[1], teks)
+    else:
+        ekspresi = _baca(teks, teks)
 
     # hanya boleh ada variabel x
     if not isinstance(ekspresi, sp.Basic) or not ekspresi.free_symbols <= {X}:

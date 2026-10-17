@@ -29,18 +29,26 @@ FUNGSI = (
     "sin", "cos", "tan", "cot", "sec", "csc",
     "asin", "acos", "atan",
     "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
-    "exp", "log", "ln", "sqrt", "cbrt", "abs",
+    "exp", "log", "ln", "log10", "log2", "sqrt", "cbrt", "abs",
 )
 
 # konstanta dan variabel yang boleh dipakai (e = bilangan Euler)
 KONSTANTA = ("x", "e", "pi")
 
 # nama yang dikenali sympy: "e" jadi bilangan Euler, "pi" jadi 3,14159...
-LOKAL = {"x": X, "e": sp.E, "pi": sp.pi}
+LOKAL = {
+    "x": X,
+    "e": sp.E,
+    "pi": sp.pi,
+    # log() di sympy adalah logaritma natural, jadi basis 10 dan 2 dibuat sendiri
+    "log10": lambda nilai: sp.log(nilai) / sp.log(10),
+    "log2": lambda nilai: sp.log(nilai) / sp.log(2),
+}
 
 _KARAKTER_BOLEH = re.compile(r"[0-9A-Za-z+\-*/^().,=\s]*")
-_ANGKA = re.compile(r"\d+\.?\d*(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?")
-_NAMA = re.compile(r"[A-Za-z]+")
+# angka yang berdiri sendiri (bukan bagian dari nama seperti log10)
+_ANGKA = re.compile(r"(?<![A-Za-z0-9.])(?:\d+\.?\d*(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)")
+_NAMA = re.compile(r"[A-Za-z][A-Za-z0-9]*")
 
 
 def _bilangan_bulat_ke_float(tokens, local_dict, global_dict):

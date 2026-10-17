@@ -149,3 +149,25 @@ def test_angka_ilmiah_dan_desimal_tetap_valid(teks, x):
 
 def test_gabungan_konstanta_tanpa_spasi():
     assert parse_fungsi("xe")(2) == pytest.approx(2 * math.e)
+
+
+# ---------- logaritma basis 10 dan 2 ----------
+
+
+@pytest.mark.parametrize("teks, x, diharapkan", [("log10(x)", 1000, 3), ("log2(x)", 8, 3), ("log10(x) - 2", 100, 0)])
+def test_logaritma_basis_10_dan_2(teks, x, diharapkan):
+    assert parse_fungsi(teks)(x) == pytest.approx(diharapkan)
+
+
+def test_log_biasa_tetap_logaritma_natural():
+    assert parse_fungsi("log(x)")(math.e) == pytest.approx(1)
+
+
+def test_logaritma_dalam_persamaan():
+    f = parse_fungsi("log10(x) = 2")
+    assert f(100) == pytest.approx(0)
+
+
+def test_nama_dengan_angka_yang_tidak_dikenal_ditolak():
+    with pytest.raises(ValueError, match="'x2'"):
+        parse_fungsi("x2 + 1")

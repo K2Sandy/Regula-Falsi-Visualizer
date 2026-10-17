@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from regula_falsi import HasilRegulaFalsi, regula_falsi
+from regula_falsi import HasilRegulaFalsi, _hitung_error, regula_falsi
 
 
 def kubik(x):
@@ -98,3 +98,16 @@ def test_akar_dekat_nol_tidak_bagi_nol():
     hasil = regula_falsi(lambda x: x, -1, 2, tol=1e-9, max_iter=50)
     assert hasil.konvergen
     assert hasil.akar == pytest.approx(0.0, abs=1e-9)
+
+
+def test_hitung_error_iterasi_pertama_kosong():
+    assert _hitung_error(1.5, None, 1e-6) is None
+
+
+def test_hitung_error_relatif():
+    assert _hitung_error(2.0, 1.0, 1e-6) == pytest.approx(0.5)
+
+
+def test_hitung_error_absolut_saat_akar_dekat_nol():
+    # |c| <= tol, jadi tidak boleh bagi dengan c
+    assert _hitung_error(0.0, 1e-3, 1e-6) == pytest.approx(1e-3)

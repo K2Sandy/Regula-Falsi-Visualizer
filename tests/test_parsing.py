@@ -91,3 +91,61 @@ def test_pembagian_nol_memberi_error_jelas():
     f = parse_fungsi("1/x")
     with pytest.raises(ValueError, match="x = 0"):
         f(0)
+
+
+# ---------- keamanan input ----------
+
+
+@pytest.mark.parametrize(
+    "teks",
+    [
+        "exec('x=1')",
+        "open('data.txt')",
+        "__import__('os')",
+        "eval('1+1')",
+        "x; x",
+        "x[0]",
+        "lambda: 1",
+        "x'1'",
+        "x@x",
+        "x.real",
+        "{x}",
+    ],
+)
+def test_teks_berbahaya_ditolak(teks):
+    with pytest.raises(ValueError):
+        parse_fungsi(teks)
+
+
+def test_exec_tidak_dijalankan(tmp_path):
+    berkas = tmp_path / "bukti.txt"
+    teks = f"exec(\"open('{berkas}','w').write('x')\")"
+    with pytest.raises(ValueError):
+        parse_fungsi(teks)
+    assert not berkas.exists()
+
+
+def test_nama_tidak_dikenal_disebut_di_pesan_error():
+    with pytest.raises(ValueError, match="'foo'"):
+        parse_fungsi("foo(x)")
+
+
+def test_teks_terlalu_panjang_ditolak():
+    with pytest.raises(ValueError, match="terlalu panjang"):
+        parse_fungsi("x + " * 100 + "1")
+
+
+@pytest.mark.parametrize("teks", ["9^9^9^9 + x", "9**9**9**9 + x", "cos(9^9^9^9) + x", "e^x = 9^9^9^9"])
+def test_menara_pangkat_tidak_membuat_macet(teks):
+    f = parse_fungsi(teks)          # harus selesai cepat
+    with pytest.raises(ValueError):
+        f(2.0)                      # terlalu besar, bukan hang
+
+
+@pytest.mark.parametrize("teks, x", [("2e-3*x", 1), ("1e3 - x", 1), ("x^0.5", 4), ("2pi*x", 1)])
+def test_angka_ilmiah_dan_desimal_tetap_valid(teks, x):
+    assert isinstance(parse_fungsi(teks)(x), float)
+
+
+def test_gabungan_konstanta_tanpa_spasi():
+    assert parse_fungsi("xe")(2) == pytest.approx(2 * math.e)

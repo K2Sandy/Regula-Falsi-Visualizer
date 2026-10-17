@@ -68,3 +68,19 @@ def test_galat_dari_fungsi_diteruskan():
 
     with pytest.raises(ValueError, match="tidak terdefinisi"):
         regula_falsi(rusak, 1, 2)
+
+
+@pytest.mark.parametrize(
+    "a, b, tol",
+    [
+        (float("nan"), 2, 1e-6),
+        (1, float("nan"), 1e-6),
+        (float("-inf"), 2, 1e-6),
+        (1, float("inf"), 1e-6),
+        (1, 2, float("nan")),
+        (1, 2, float("inf")),
+    ],
+)
+def test_nilai_nan_dan_tak_hingga_ditolak(a, b, tol):
+    with pytest.raises(ValueError, match="NaN atau tak hingga"):
+        regula_falsi(kubik, a, b, tol=tol)

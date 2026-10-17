@@ -18,6 +18,21 @@ class HasilRegulaFalsi:
     tabel: list = field(default_factory=list)  # satu dict per iterasi
 
 
+def _hitung_error(c, c_lama, tol):
+    """Hitung error perkiraan akar antara dua iterasi berurutan.
+
+    Biasanya error relatif |c - c_lama| / |c|. Kalau akar sangat dekat 0
+    (|c| <= tol), error relatif tidak pernah mengecil dan bisa bagi nol, jadi
+    dipakai error absolut |c - c_lama|. Mengembalikan None di iterasi pertama
+    karena belum ada nilai pembanding.
+    """
+    if c_lama is None:
+        return None
+    if abs(c) > tol:
+        return abs((c - c_lama) / c)
+    return abs(c - c_lama)
+
+
 def regula_falsi(f, a, b, tol=1e-6, max_iter=100):
     """Cari akar f(x) = 0 di interval [a, b] dengan metode Regula Falsi.
 
@@ -66,15 +81,7 @@ def regula_falsi(f, a, b, tol=1e-6, max_iter=100):
         c = (a * fb - b * fa) / (fb - fa)
         fc = f(c)
 
-        # error relatif |c_baru - c_lama| / |c_baru|
-        if c_lama is None:
-            error = None            # iterasi pertama belum punya pembanding
-        elif abs(c) > tol:
-            error = abs((c - c_lama) / c)
-        else:
-            # akar sangat dekat 0: error relatif tidak pernah mengecil
-            # (dan bisa bagi nol), jadi pakai error absolut
-            error = abs(c - c_lama)
+        error = _hitung_error(c, c_lama, tol)
 
         tabel.append({
             "Iterasi": i,

@@ -9,6 +9,7 @@ ikut dieksekusi oleh ``parse_expr`` (yang memakai ``eval`` di balik layar).
 import math
 import re
 import tokenize
+from collections.abc import Callable
 
 import numpy as np
 import sympy as sp
@@ -99,11 +100,11 @@ class _PencetakNumpy(NumPyPrinter):
         return list(expr.args)
 
 
-def _daftar_nama():
+def _daftar_nama() -> str:
     return ", ".join(sorted(FUNGSI))
 
 
-def _nama_konstanta_valid(nama):
+def _nama_konstanta_valid(nama: str) -> bool:
     """True kalau nama hanya tersusun dari x, e, dan pi (misal 'xe' = x*e)."""
     bisa = [True] + [False] * len(nama)
     for i in range(len(nama)):
@@ -115,7 +116,7 @@ def _nama_konstanta_valid(nama):
     return bisa[len(nama)]
 
 
-def _normalkan(teks):
+def _normalkan(teks: str) -> str:
     """Ganti simbol unicode umum (−, ×, ÷, ², ³, π, √) dengan padanan biasa.
 
     ``√`` ditulis ``√(x)`` atau ``√x``; yang kedua dibaca sebagai ``sqrt x``,
@@ -125,7 +126,7 @@ def _normalkan(teks):
     return teks.translate(_SIMBOL)
 
 
-def _periksa_teks(teks):
+def _periksa_teks(teks: str) -> None:
     """Pastikan teks hanya berisi karakter dan nama yang diizinkan."""
     if len(teks) > MAKS_PANJANG:
         raise ValueError(f"Fungsi terlalu panjang (maksimal {MAKS_PANJANG} karakter).")
@@ -142,7 +143,7 @@ def _periksa_teks(teks):
         )
 
 
-def _baca(potongan, teks_asli):
+def _baca(potongan: str, teks_asli: str) -> sp.Basic:
     """Ubah satu potongan teks menjadi ekspresi sympy."""
     try:
         return parse_expr(
@@ -158,7 +159,7 @@ def _baca(potongan, teks_asli):
         ) from None
 
 
-def parse_fungsi(teks):
+def parse_fungsi(teks: str | None) -> Callable[[float], float]:
     """Ubah string seperti "x^3 - x - 2" menjadi fungsi Python f(x).
 
     Raise ValueError dengan pesan yang jelas kalau teks tidak valid.
@@ -186,7 +187,7 @@ def parse_fungsi(teks):
 
     fungsi_numpy = sp.lambdify(X, ekspresi, modules="numpy", printer=_PencetakNumpy, docstring_limit=0)
 
-    def f(nilai):
+    def f(nilai: float) -> float:
         try:
             with np.errstate(all="ignore"):   # bungkam warning numpy (log negatif, dll)
                 hasil = float(fungsi_numpy(nilai))

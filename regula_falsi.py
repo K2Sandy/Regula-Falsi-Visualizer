@@ -5,6 +5,7 @@ Rumus titik baru:
 """
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 
@@ -12,13 +13,13 @@ from dataclasses import dataclass, field
 class HasilRegulaFalsi:
     akar: float                 # nilai akar hasil akhir
     iterasi: int                # jumlah iterasi yang dilakukan
-    error: float                # error relatif terakhir (None kalau cuma 1 iterasi)
+    error: float | None         # error relatif terakhir (None kalau cuma 1 iterasi)
     konvergen: bool             # True kalau berhenti karena memenuhi toleransi
     alasan: str                 # penjelasan kenapa iterasi berhenti
-    tabel: list = field(default_factory=list)  # satu dict per iterasi
+    tabel: list[dict[str, float | int | None]] = field(default_factory=list)  # satu dict per iterasi
 
 
-def _hitung_error(c, c_lama, tol):
+def _hitung_error(c: float, c_lama: float | None, tol: float) -> float | None:
     """Hitung error perkiraan akar antara dua iterasi berurutan.
 
     Biasanya error relatif |c - c_lama| / |c|. Kalau akar sangat dekat 0
@@ -33,7 +34,13 @@ def _hitung_error(c, c_lama, tol):
     return abs(c - c_lama)
 
 
-def regula_falsi(f, a, b, tol=1e-6, max_iter=100):
+def regula_falsi(
+    f: Callable[[float], float],
+    a: float,
+    b: float,
+    tol: float = 1e-6,
+    max_iter: int = 100,
+) -> HasilRegulaFalsi:
     """Cari akar f(x) = 0 di interval [a, b] dengan metode Regula Falsi.
 
     f        : fungsi Python yang menerima angka dan mengembalikan angka

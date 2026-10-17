@@ -1,10 +1,21 @@
 """Grafik fungsi f(x) beserta interval dan akar."""
 
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
 import numpy as np
 from matplotlib.figure import Figure
 
+if TYPE_CHECKING:
+    from regula_falsi import HasilRegulaFalsi
 
-def buat_grafik(f, a, b, hasil=None):
+
+def buat_grafik(
+    f: Callable[[float], float],
+    a: float,
+    b: float,
+    hasil: "HasilRegulaFalsi | None" = None,
+) -> Figure:
     """Buat grafik f(x) di sekitar [a, b] dan kembalikan objek Figure matplotlib.
 
     hasil : objek HasilRegulaFalsi (opsional). Kalau ada, akar ikut ditandai.

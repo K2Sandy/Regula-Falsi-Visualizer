@@ -171,3 +171,28 @@ def test_logaritma_dalam_persamaan():
 def test_nama_dengan_angka_yang_tidak_dikenal_ditolak():
     with pytest.raises(ValueError, match="'x2'"):
         parse_fungsi("x2 + 1")
+
+
+# ---------- simbol unicode hasil salin-tempel ----------
+
+
+@pytest.mark.parametrize(
+    "teks, x, diharapkan",
+    [
+        ("x² − 4", 3, 5),
+        ("x³ − x − 2", 2, 4),
+        ("2 × x + 1", 4, 9),
+        ("2·x + 1", 4, 9),
+        ("x ÷ 2", 6, 3),
+        ("x − π", 0, -math.pi),
+        ("√x − 2", 9, 1),
+        ("√(x) − 2", 16, 2),
+        ("x – 1", 3, 2),
+    ],
+)
+def test_simbol_unicode_dinormalkan(teks, x, diharapkan):
+    assert parse_fungsi(teks)(x) == pytest.approx(diharapkan)
+
+
+def test_persamaan_dengan_simbol_unicode():
+    assert parse_fungsi("x² = 4")(3) == pytest.approx(5)

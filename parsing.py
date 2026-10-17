@@ -45,6 +45,19 @@ LOKAL = {
     "log2": lambda nilai: sp.log(nilai) / sp.log(2),
 }
 
+# simbol hasil salin-tempel dari dokumen/kalkulator yang diubah ke bentuk biasa
+_SIMBOL = str.maketrans({
+    "\u2212": "-",    # − tanda minus
+    "\u2013": "-",    # – en dash
+    "\u00d7": "*",    # × kali
+    "\u00b7": "*",    # · titik kali
+    "\u00f7": "/",    # ÷ bagi
+    "\u03c0": "pi",   # π
+    "\u00b2": "^2",   # ²
+    "\u00b3": "^3",   # ³
+    "\u221a": "sqrt", # √
+})
+
 _KARAKTER_BOLEH = re.compile(r"[0-9A-Za-z+\-*/^().,=\s]*")
 # angka yang berdiri sendiri (bukan bagian dari nama seperti log10)
 _ANGKA = re.compile(r"(?<![A-Za-z0-9.])(?:\d+\.?\d*(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)")
@@ -102,6 +115,16 @@ def _nama_konstanta_valid(nama):
     return bisa[len(nama)]
 
 
+def _normalkan(teks):
+    """Ganti simbol unicode umum (−, ×, ÷, ², ³, π, √) dengan padanan biasa.
+
+    ``√`` ditulis ``√(x)`` atau ``√x``; yang kedua dibaca sebagai ``sqrt x``,
+    jadi dibungkus kurung supaya tetap valid.
+    """
+    teks = re.sub(r"\u221a\s*([A-Za-z0-9.]+)", r"sqrt(\1)", teks)
+    return teks.translate(_SIMBOL)
+
+
 def _periksa_teks(teks):
     """Pastikan teks hanya berisi karakter dan nama yang diizinkan."""
     if len(teks) > MAKS_PANJANG:
@@ -140,7 +163,7 @@ def parse_fungsi(teks):
 
     Raise ValueError dengan pesan yang jelas kalau teks tidak valid.
     """
-    teks = (teks or "").strip()
+    teks = _normalkan((teks or "").strip())
     if not teks:
         raise ValueError("Fungsi f(x) belum diisi.")
     _periksa_teks(teks)

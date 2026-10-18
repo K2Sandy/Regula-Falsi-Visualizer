@@ -9,11 +9,13 @@ import streamlit as st
 from grafik import buat_grafik
 from parsing import parse_fungsi
 from regula_falsi import regula_falsi
+from style import terapkan_gaya, judul, footer
 
 st.set_page_config(page_title="Kalkulator Regula Falsi", page_icon="📈", layout="wide")
 
-st.title("📈 Kalkulator Regula Falsi")
-st.caption("Mencari akar persamaan nonlinier f(x) = 0 dengan Metode Regula Falsi")
+terapkan_gaya()
+
+judul()
 
 # ---------- input ----------
 st.subheader("Input")
@@ -72,3 +74,6 @@ if hitung:
         with kanan:
             st.subheader("Grafik")
             st.pyplot(buat_grafik(f, a, b, hasil))
+            
+
+footer()

@@ -209,13 +209,21 @@ ke `main` dan pull request.
 
 Kelompok 3, Praktikum Komputasi Numerik C:
 
-- Siti Salwa Shafina
-- Al Aul Tsaqif
-- Nawal Azqia
-- Syella Zikra Arifa
-- Keisya Zahira
-- Muhammad Albharaka Putrosandy
+| Nama | NPM |
+|------|-----|
+| Syella Zikra Arifa | 250810701100014 |
+| Muhammad Albharaka Putrosandy | 250810701100022 |
+| Al Aul Tsaqif | 250810701100034 |
+| Keisya Zahira | 250810701100038 |
+| Siti Salwa Shafina | 250810701100055 |
+| Nawal Azqia | 250810701100092 |
+
+Asisten laboratorium (aslab):
+
+- Bang Faris
+- Kak Mahda
+- Kak Ulfa
 
 ## Lisensi
 
-Belum ditentukan.
+Proyek ini dirilis dengan lisensi [MIT](https://opensource.org/license/mit).

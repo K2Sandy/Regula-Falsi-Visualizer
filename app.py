@@ -74,6 +74,6 @@ if hitung:
         with kanan:
             st.subheader("Grafik")
             st.pyplot(buat_grafik(f, a, b, hasil))
-            
+
 
 footer()

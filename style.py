@@ -78,6 +78,14 @@ h1, h2, h3 { letter-spacing: -0.03em; }
 .st-key-pratinjau .katex { font-size: 1.3em; }
 .st-key-kartu_rumus { padding: 1rem 1.2rem .4rem; transform: rotate(-1.2deg); }
 .st-key-kartu_kosong { padding: 1.4rem 1.5rem; }
+.st-key-kartu_langkah {
+  background: #fff;
+  border: 2px solid var(--tinta);
+  border-radius: 12px;
+  padding: 1.1rem 1.3rem !important;
+}
+.st-key-kartu_langkah h4 { padding-top: 0; }
+.st-key-kartu_langkah li { margin-bottom: .45rem; line-height: 1.55; font-variant-numeric: tabular-nums; }
 .st-key-kartu_rumus p { color: var(--pensil); margin-bottom: 0; }
 .st-key-kartu_kosong { border-style: dashed !important; box-shadow: none; }
 

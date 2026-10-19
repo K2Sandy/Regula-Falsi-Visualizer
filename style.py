@@ -122,11 +122,20 @@ h1, h2, h3 { letter-spacing: -0.03em; }
 [data-testid="stMetricLabel"] p { color: var(--pensil); font-weight: 600; }
 
 /* ---------- tab ---------- */
-.stTabs [data-baseweb="tab-list"] { gap: 1.4rem; border-bottom: 2px solid var(--tinta); }
-.stTabs [data-baseweb="tab"] { padding: .5rem 0; font-weight: 600; }
-.stTabs [data-baseweb="tab"] p { font-size: 1rem; }
-.stTabs [data-baseweb="tab-highlight"] { background: var(--stabilo); height: 6px; border-radius: 0; }
-.stTabs [data-baseweb="tab-border"] { display: none; }
+.stTabs [role="tablist"] {
+  gap: 1.6rem;
+  border-bottom: 2px solid var(--tinta);
+  margin-bottom: .6rem;
+}
+.stTabs [role="tab"] { padding: .55rem 0; }
+.stTabs [role="tab"] p { font-size: 1.02rem; font-weight: 600; color: var(--pensil); }
+.stTabs [role="tab"][aria-selected="true"] p { color: var(--tinta); }
+.stTabs .react-aria-SelectionIndicator {
+  background: var(--stabilo) !important;
+  background-color: var(--stabilo) !important;
+  height: 6px !important;
+  border-radius: 0 !important;
+}
 
 /* ---------- tabel ---------- */
 [data-testid="stDataFrame"] {
@@ -159,7 +168,7 @@ h1, h2, h3 { letter-spacing: -0.03em; }
   .st-key-kartu_rumus { transform: none; }
   :root { --bayangan: 3px 3px 0 var(--tinta); }
   [data-testid="stMetric"] { box-shadow: 3px 3px 0 var(--tinta); }
-  .stTabs [data-baseweb="tab-list"] { gap: .9rem; overflow-x: auto; }
+  .stTabs [role="tablist"] { gap: 1rem; overflow-x: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {

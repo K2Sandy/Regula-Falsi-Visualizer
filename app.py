@@ -9,7 +9,7 @@ import streamlit as st
 from grafik import buat_grafik
 from parsing import parse_fungsi
 from regula_falsi import regula_falsi
-from style import terapkan_gaya, judul, footer
+from style import footer, judul, terapkan_gaya
 
 st.set_page_config(page_title="Kalkulator Regula Falsi", page_icon="📈", layout="wide")
 

@@ -1,10 +1,11 @@
-"""Tes parse_fungsi: teks f(x) jadi fungsi Python."""
+"""Tes parsing: teks f(x) jadi fungsi Python dan rumus LaTeX."""
 
 import math
 
 import pytest
+import sympy as sp
 
-from parsing import parse_fungsi
+from parsing import X, ke_latex, parse_ekspresi, parse_fungsi
 
 
 @pytest.mark.parametrize(
@@ -196,3 +197,49 @@ def test_simbol_unicode_dinormalkan(teks, x, diharapkan):
 
 def test_persamaan_dengan_simbol_unicode():
     assert parse_fungsi("x² = 4")(3) == pytest.approx(5)
+
+
+# ---------- parse_ekspresi & ke_latex (pratinjau rumus) ----------
+
+
+def test_parse_ekspresi_mengembalikan_ekspresi_sympy_dalam_x():
+    ekspresi = parse_ekspresi("x^3 - x - 2")
+    assert isinstance(ekspresi, sp.Basic)
+    assert ekspresi.free_symbols == {X}
+
+
+def test_parse_ekspresi_ruas_kanan_nol_tidak_menambah_suku():
+    assert ke_latex("e^x - 3 = 0") == ke_latex("e^x - 3")
+
+
+@pytest.mark.parametrize(
+    "teks, latex",
+    [
+        ("x^3 - x - 2", "x^{3} - x - 2"),
+        ("2x^2 - 3x + 1", "2 x^{2} - 3 x + 1"),
+        ("e^x = 3", "e^{x} - 3"),
+        ("1/(x - 1) - 2", r"\frac{1}{x - 1} - 2"),
+        ("x^(1/3) - 2", r"x^{\frac{1}{3}} - 2"),
+        ("0.5x - 1.25", "0.5 x - 1.25"),
+    ],
+)
+def test_ke_latex_angka_bulat_tanpa_desimal_dan_urutan_tetap(teks, latex):
+    assert ke_latex(teks) == latex
+
+
+def test_ke_latex_fungsi_trigonometri():
+    assert r"\cos" in ke_latex("cos(x) - x")
+
+
+def test_ke_latex_angka_sangat_besar_tetap_ringkas():
+    assert len(ke_latex("1e300*x")) < 40
+
+
+def test_ke_latex_tidak_menghitung_pangkat_raksasa():
+    assert ke_latex("9^9^9^9 + x").endswith("+ x")
+
+
+@pytest.mark.parametrize("teks", ["", "x +", "y + 1", "exec(1)"])
+def test_ke_latex_menolak_teks_tidak_valid(teks):
+    with pytest.raises(ValueError):
+        ke_latex(teks)

@@ -169,6 +169,9 @@ h1, h2, h3 { letter-spacing: -0.03em; }
   line-height: 1.6;
 }
 .footer strong { color: var(--tinta); }
+.footer a { color: var(--pulpen); font-weight: 600; }
+.st-key-kartu_kosong h4 { padding-top: 0; }
+.st-key-kartu_kosong li { margin-bottom: .3rem; }
 
 /* ---------- layar kecil ---------- */
 @media (max-width: 640px) {
@@ -177,6 +180,13 @@ h1, h2, h3 { letter-spacing: -0.03em; }
   :root { --bayangan: 3px 3px 0 var(--tinta); }
   [data-testid="stMetric"] { box-shadow: 3px 3px 0 var(--tinta); }
   .stTabs [role="tablist"] { gap: 1rem; overflow-x: auto; }
+  /* angka hasil tetap 2 x 2, tidak menumpuk satu per baris */
+  .st-key-angka_hasil [data-testid="stHorizontalBlock"] { flex-wrap: wrap; gap: .75rem; }
+  .st-key-angka_hasil [data-testid="stColumn"] {
+    flex: 1 1 calc(50% - .75rem) !important;
+    min-width: calc(50% - .75rem) !important;
+  }
+  .st-key-angka_hasil [data-testid="stMetricValue"] { font-size: 1.45rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -206,9 +216,10 @@ def judul() -> None:
 def footer() -> None:
     st.markdown(
         '<div class="footer">'
-        "<strong>Kelompok 3</strong> · Praktikum Komputasi Numerik C<br>"
-        "Siti Salwa Shafina · Al Aul Tsaqif · Nawal Azqia · "
-        "Syella Zikra Arifa · Keisya Zahira · Muhammad Albharaka Putrosandy"
+        "<strong>Kelompok 3, Praktikum Komputasi Numerik C</strong><br>"
+        "Siti Salwa Shafina, Al Aul Tsaqif, Nawal Azqia, Syella Zikra Arifa, "
+        "Keisya Zahira, dan Muhammad Albharaka Putrosandy<br>"
+        '<a href="https://github.com/K2Sandy/Regula-Falsi-Visualizer">Kode sumber di GitHub</a>'
         "</div>",
         unsafe_allow_html=True,
     )

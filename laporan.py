@@ -1,6 +1,10 @@
-"""Mengubah hasil Regula Falsi menjadi penjelasan yang mudah dibaca."""
+"""Mengubah hasil Regula Falsi menjadi penjelasan, tabel, dan file CSV."""
+
+import pandas as pd
 
 from regula_falsi import HasilRegulaFalsi
+
+KOLOM = ["Iterasi", "a", "b", "c", "f(a)", "f(b)", "f(c)", "Error"]
 
 
 def _angka(nilai: float) -> str:
@@ -54,3 +58,21 @@ def jelaskan_iterasi(hasil: HasilRegulaFalsi, nomor: int, tol: float) -> list[st
             f"Untuk iterasi berikutnya a diganti dengan c = {_angka(c)}."
         )
     return kalimat
+
+
+def tabel_ke_dataframe(hasil: HasilRegulaFalsi) -> pd.DataFrame:
+    """Ubah tabel iterasi menjadi DataFrame dengan urutan kolom tetap.
+
+    Error iterasi pertama (None) menjadi NaN supaya kolomnya tetap bertipe angka.
+    """
+    df = pd.DataFrame(hasil.tabel, columns=KOLOM)
+    df["Error"] = pd.to_numeric(df["Error"])
+    return df
+
+
+def tabel_ke_csv(hasil: HasilRegulaFalsi) -> bytes:
+    """Ubah tabel iterasi menjadi isi file CSV (UTF-8) untuk diunduh.
+
+    Angka ditulis sampai 12 angka penting dan error kosong menjadi sel kosong.
+    """
+    return tabel_ke_dataframe(hasil).to_csv(index=False, float_format="%.12g").encode("utf-8")

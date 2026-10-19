@@ -82,30 +82,33 @@ h1, h2, h3 { letter-spacing: -0.03em; }
 .st-key-kartu_kosong { border-style: dashed !important; box-shadow: none; }
 
 /* ---------- tombol ---------- */
-.stButton > button,
-.stDownloadButton > button {
+.stButton button,
+.stDownloadButton button {
   font-weight: 700;
   border: 2px solid var(--tinta);
   box-shadow: 4px 4px 0 var(--tinta);
   padding: .55rem 1.6rem;
   transition: transform .12s, box-shadow .12s;
 }
-.stButton > button:hover,
-.stDownloadButton > button:hover {
+.stButton button:hover,
+.stDownloadButton button:hover {
   border-color: var(--tinta);
   transform: translate(-1px, -1px);
   box-shadow: 5px 5px 0 var(--tinta);
 }
-.stButton > button:active,
-.stDownloadButton > button:active {
+.stButton button:active,
+.stDownloadButton button:active {
   transform: translate(3px, 3px);
   box-shadow: 1px 1px 0 var(--tinta);
 }
-.stButton > button:focus-visible,
-.stDownloadButton > button:focus-visible {
+.stButton button:focus-visible,
+.stDownloadButton button:focus-visible {
   outline: 3px solid var(--stabilo);
   outline-offset: 3px;
 }
+
+.stButton button[kind="secondary"],
+.stDownloadButton button[kind="secondary"] { background: #fff; color: var(--tinta); }
 
 /* ---------- angka hasil ---------- */
 [data-testid="stMetric"] {
@@ -160,7 +163,7 @@ h1, h2, h3 { letter-spacing: -0.03em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stButton > button, .stDownloadButton > button { transition: none; }
+  .stButton button, .stDownloadButton button { transition: none; }
 }
 """
 

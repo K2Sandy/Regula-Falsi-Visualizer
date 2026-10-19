@@ -3,6 +3,7 @@
 import math
 
 import numpy as np
+import pytest
 from matplotlib.figure import Figure
 
 from grafik import buat_grafik
@@ -56,3 +57,30 @@ def test_titik_di_luar_domain_menjadi_nan():
     assert di_luar_domain.any()
     assert np.isnan(ys[di_luar_domain]).all()
     assert np.isfinite(ys[~di_luar_domain]).all()
+
+
+def test_interval_diarsir():
+    fig = buat_grafik(lambda x: x**2 - 2, 0, 2)
+    assert len(fig.axes[0].patches) == 1
+
+
+def test_kurva_diputus_di_kutub():
+    f = parse_fungsi("1/(x - 1) - 2")
+    fig = buat_grafik(f, 0.5, 2)
+    xs = np.asarray(fig.axes[0].lines[0].get_xdata(), dtype=float)
+    ys = np.asarray(fig.axes[0].lines[0].get_ydata(), dtype=float)
+    putus = xs[np.isnan(ys)]
+    assert len(putus) == 1
+    assert putus[0] == pytest.approx(1, abs=0.01)
+
+
+def test_sumbu_y_dipotong_di_sekitar_kutub():
+    fig = buat_grafik(parse_fungsi("1/(x - 1) - 2"), 0.5, 2)
+    bawah, atas = fig.axes[0].get_ylim()
+    assert atas - bawah < 200
+
+
+def test_kurva_mulus_tidak_diputus():
+    fig = buat_grafik(parse_fungsi("e^x - 3"), 0, 2)
+    ys = np.asarray(fig.axes[0].lines[0].get_ydata(), dtype=float)
+    assert np.isfinite(ys).all()

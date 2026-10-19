@@ -188,3 +188,48 @@ def buat_grafik_iterasi(
     _legenda(ax)
     fig.tight_layout()
     return fig
+
+
+def buat_grafik_konvergensi(hasil: "HasilRegulaFalsi", tol: float) -> Figure:
+    """Grafik error dan |f(c)| tiap iterasi dalam skala logaritmik.
+
+    Garis toleransi ikut digambar, jadi terlihat di iterasi mana error
+    menembus toleransi. Nilai 0 (akar tepat) tidak bisa digambar di skala log
+    sehingga dilewati.
+    """
+    iterasi = [baris["Iterasi"] for baris in hasil.tabel]
+    error = [baris["Error"] for baris in hasil.tabel]
+    fc = [abs(baris["f(c)"]) for baris in hasil.tabel]
+
+    fig = Figure(figsize=(7, 4.2))
+    ax = _siapkan_sumbu(fig)
+
+    titik_error = [(i, e) for i, e in zip(iterasi, error, strict=True) if e is not None and e > 0]
+    titik_fc = [(i, v) for i, v in zip(iterasi, fc, strict=True) if v > 0]
+
+    if not titik_error and not titik_fc:
+        ax.text(0.5, 0.5, "Tidak ada error untuk digambar.\nAkar ditemukan tanpa perlu iterasi lanjutan.",
+                ha="center", va="center", color=PENSIL, transform=ax.transAxes)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for sisi in ("left", "bottom"):
+            ax.spines[sisi].set_visible(False)
+        fig.tight_layout()
+        return fig
+
+    if titik_error:
+        xs, ys = zip(*titik_error, strict=True)
+        ax.plot(xs, ys, "o-", color=PULPEN, linewidth=2.2, markersize=5, label="error relatif", zorder=3)
+    if titik_fc:
+        xs, ys = zip(*titik_fc, strict=True)
+        ax.plot(xs, ys, "s--", color=PENSIL, linewidth=1.2, markersize=4, label="|f(c)|", zorder=3)
+
+    ax.set_yscale("log")
+    ax.axhline(tol, color=KOREKSI, linewidth=1.2, linestyle="--", label=f"toleransi = {tol:g}", zorder=2)
+    ax.axhspan(ax.get_ylim()[0], tol, color=STABILO, alpha=0.22, linewidth=0, zorder=1)
+    ax.set_xlabel("Iterasi")
+    ax.set_ylabel("Nilai (skala log)")
+    ax.xaxis.get_major_locator().set_params(integer=True)
+    _legenda(ax)
+    fig.tight_layout()
+    return fig

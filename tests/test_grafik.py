@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from matplotlib.figure import Figure
 
-from grafik import buat_grafik
+from grafik import buat_grafik, buat_grafik_iterasi
 from parsing import parse_fungsi
 from regula_falsi import regula_falsi
 
@@ -84,3 +84,54 @@ def test_kurva_mulus_tidak_diputus():
     fig = buat_grafik(parse_fungsi("e^x - 3"), 0, 2)
     ys = np.asarray(fig.axes[0].lines[0].get_ydata(), dtype=float)
     assert np.isfinite(ys).all()
+
+
+# ---------- buat_grafik_iterasi ----------
+
+
+def _label(fig):
+    return [teks.get_text() for teks in fig.axes[0].get_legend().get_texts()]
+
+
+def _hasil_kubik():
+    f = parse_fungsi("x^3 - x - 2")
+    return f, regula_falsi(f, 1, 2, tol=1e-4)
+
+
+def test_iterasi_pertama_tanpa_jejak_c():
+    f, hasil = _hasil_kubik()
+    fig = buat_grafik_iterasi(f, 1, 2, hasil, 1)
+    label = _label(fig)
+    assert "garis potong" in label
+    assert "c = 1.33333" in label
+    assert "c sebelumnya" not in label
+    assert fig.axes[0].get_title(loc="left") == "Iterasi 1 dari 8"
+
+
+def test_garis_potong_menghubungkan_a_dan_b_iterasi_itu():
+    f, hasil = _hasil_kubik()
+    fig = buat_grafik_iterasi(f, 1, 2, hasil, 3)
+    baris = hasil.tabel[2]
+    garis = next(g for g in fig.axes[0].lines if g.get_label() == "garis potong")
+    assert list(garis.get_xdata()) == [baris["a"], baris["b"]]
+    assert list(garis.get_ydata()) == [baris["f(a)"], baris["f(b)"]]
+
+
+def test_jejak_c_sebelumnya_ikut_digambar():
+    f, hasil = _hasil_kubik()
+    fig = buat_grafik_iterasi(f, 1, 2, hasil, 4)
+    jejak = next(g for g in fig.axes[0].lines if g.get_label() == "c sebelumnya")
+    assert list(jejak.get_xdata()) == [baris["c"] for baris in hasil.tabel[:3]]
+
+
+def test_skala_x_sama_di_semua_iterasi():
+    f, hasil = _hasil_kubik()
+    batas = {buat_grafik_iterasi(f, 1, 2, hasil, n).axes[0].lines[0].get_xdata()[0] for n in (1, 5, 8)}
+    assert len(batas) == 1
+
+
+@pytest.mark.parametrize("nomor", [0, 9])
+def test_nomor_iterasi_di_luar_tabel_ditolak(nomor):
+    f, hasil = _hasil_kubik()
+    with pytest.raises(ValueError, match="tidak ada"):
+        buat_grafik_iterasi(f, 1, 2, hasil, nomor)

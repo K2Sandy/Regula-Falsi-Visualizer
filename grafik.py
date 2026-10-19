@@ -132,3 +132,59 @@ def buat_grafik(
     _legenda(ax)
     fig.tight_layout()
     return fig
+
+
+def buat_grafik_iterasi(
+    f: Callable[[float], float],
+    a: float,
+    b: float,
+    hasil: "HasilRegulaFalsi",
+    nomor: int,
+) -> Figure:
+    """Gambar apa yang terjadi di iterasi ke-`nomor` (mulai dari 1).
+
+    a, b  : interval awal, supaya skala grafik sama di semua iterasi
+    hasil : objek HasilRegulaFalsi dengan tabel iterasi
+
+    Yang digambar: kurva f(x), interval iterasi itu (arsiran), garis lurus dari
+    (a, f(a)) ke (b, f(b)), titik potong c di sumbu x, nilai f(c), dan titik c
+    dari iterasi sebelumnya sebagai jejak. Raise ValueError kalau nomor tidak ada.
+    """
+    if not 1 <= nomor <= len(hasil.tabel):
+        raise ValueError(f"Iterasi {nomor} tidak ada. Pilih 1 sampai {len(hasil.tabel)}.")
+    baris = hasil.tabel[nomor - 1]
+    ai, bi, c = baris["a"], baris["b"], baris["c"]
+    fa, fb, fc = baris["f(a)"], baris["f(b)"], baris["f(c)"]
+
+    lebar = b - a
+    xs = np.linspace(a - 0.1 * lebar, b + 0.1 * lebar, 400)
+    ys = _hitung_kurva(f, xs)
+
+    fig = Figure(figsize=(7, 4.2))
+    ax = _siapkan_sumbu(fig)
+
+    ax.plot(xs, _putus_di_kutub(ys), color=PULPEN, linewidth=2.4, label="f(x)", zorder=3)
+    ax.axhline(0, color=TINTA, linewidth=1.1, zorder=2)
+    ax.axvspan(ai, bi, color=STABILO, alpha=0.28, linewidth=0, zorder=1,
+               label=f"[a, b] = [{ai:.4g}, {bi:.4g}]")
+
+    # garis lurus (a, f(a)) - (b, f(b)) yang memotong sumbu x di c
+    ax.plot([ai, bi], [fa, fb], color=TINTA, linewidth=1.4, label="garis potong", zorder=4)
+    ax.plot([ai, bi], [fa, fb], "o", color=TINTA, markersize=5, zorder=4)
+    ax.plot([c, c], [0, fc], color=KOREKSI, linestyle=":", linewidth=1.4, zorder=4)
+
+    jejak = [baris_lama["c"] for baris_lama in hasil.tabel[: nomor - 1]]
+    if jejak:
+        ax.plot(jejak, [0] * len(jejak), "o", color=PENSIL, alpha=0.45, markersize=5,
+                label="c sebelumnya", zorder=4)
+
+    ax.plot(c, 0, "o", markersize=9, color=KOREKSI, markeredgecolor="white",
+            markeredgewidth=1.5, label=f"c = {c:.6g}", zorder=5)
+
+    _batasi_y(ax, ys)
+    ax.set_xlabel("x")
+    ax.set_ylabel("f(x)")
+    ax.set_title(f"Iterasi {nomor} dari {len(hasil.tabel)}", color=TINTA, fontsize=11, loc="left")
+    _legenda(ax)
+    fig.tight_layout()
+    return fig

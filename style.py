@@ -100,7 +100,7 @@ def judul():
         "Cari akar persamaan dengan metode posisi palsu. "
         "Masukkan fungsi dan selang, lalu ikuti hitungan tiap iterasi."
     )
-    st.latex(r"c = b - \frac{f(b)\,(b-a)}{f(b)-f(a)}")
+    st.latex(r"c = \frac{a\,f(b) - b\,f(a)}{f(b) - f(a)}")
 
 
 def footer():

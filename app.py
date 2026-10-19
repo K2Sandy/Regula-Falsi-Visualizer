@@ -8,7 +8,7 @@ import streamlit as st
 from contoh import DAFTAR_CONTOH, cari_contoh
 from grafik import buat_grafik, buat_grafik_iterasi, buat_grafik_konvergensi
 from interval import cari_interval
-from laporan import jelaskan_iterasi, tabel_ke_dataframe
+from laporan import jelaskan_iterasi, tabel_ke_csv, tabel_ke_dataframe
 from parsing import ke_latex, parse_fungsi
 from regula_falsi import regula_falsi
 from style import footer, judul, terapkan_gaya
@@ -167,7 +167,8 @@ if hitungan:
     if hitungan["input"] != _input_sekarang():
         st.caption("Isian sudah berubah sejak hasil ini dihitung. Tekan **Hitung akar** untuk memperbarui.")
 
-    m1, m2, m3, m4 = st.columns(4)
+    with st.container(key="angka_hasil"):
+        m1, m2, m3, m4 = st.columns(4)
     m1.metric("Akar", f"{hasil.akar:.8g}")
     m2.metric("Jumlah iterasi", hasil.iterasi)
     m3.metric("Error akhir", "-" if hasil.error is None else f"{hasil.error:.3e}")
@@ -207,7 +208,25 @@ if hitungan:
 
     with tab_tabel:
         if hasil.tabel:
-            st.dataframe(tabel_ke_dataframe(hasil), hide_index=True, width="stretch")
+            angka = st.column_config.NumberColumn(format="%.6f")
+            st.dataframe(
+                tabel_ke_dataframe(hasil),
+                hide_index=True,
+                width="stretch",
+                placeholder="-",
+                column_config={
+                    "Iterasi": st.column_config.NumberColumn(format="%d", width="small"),
+                    "a": angka, "b": angka, "c": angka,
+                    "f(a)": angka, "f(b)": angka, "f(c)": angka,
+                    "Error": st.column_config.NumberColumn(format="%.3e", help="Kosong di iterasi pertama"),
+                },
+            )
+            st.download_button(
+                "Unduh tabel (CSV)",
+                data=tabel_ke_csv(hasil),
+                file_name="iterasi-regula-falsi.csv",
+                mime="text/csv",
+            )
         else:
             st.info("Tidak ada iterasi, akar sudah ada di ujung interval.")
 
@@ -216,6 +235,15 @@ if hitungan:
         st.caption(
             "Error relatif turun tiap iterasi. Iterasi berhenti saat garis biru "
             "masuk ke area kuning di bawah garis toleransi."
+        )
+
+elif "galat" not in st.session_state:
+    with st.container(key="kartu_kosong"):
+        st.markdown("#### Belum ada hasil")
+        st.markdown(
+            "1. Ketik fungsi f(x), atau pilih salah satu contoh soal.\n"
+            "2. Isi batas a dan b, atau tekan **Cari interval**.\n"
+            "3. Tekan **Hitung akar**, lalu geser slider untuk melihat tiap iterasi."
         )
 
 footer()

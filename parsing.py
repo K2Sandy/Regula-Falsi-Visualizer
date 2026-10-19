@@ -19,6 +19,7 @@ from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
 )
+from sympy.printing.latex import LatexPrinter
 from sympy.printing.numpy import NumPyPrinter
 
 X = sp.Symbol("x")
@@ -159,10 +160,11 @@ def _baca(potongan: str, teks_asli: str) -> sp.Basic:
         ) from None
 
 
-def parse_fungsi(teks: str | None) -> Callable[[float], float]:
-    """Ubah string seperti "x^3 - x - 2" menjadi fungsi Python f(x).
+def parse_ekspresi(teks: str | None) -> sp.Expr:
+    """Ubah string seperti "x^3 - x - 2" menjadi ekspresi sympy dalam x.
 
-    Raise ValueError dengan pesan yang jelas kalau teks tidak valid.
+    Persamaan seperti "e^x = 3" diubah menjadi "e^x - 3". Raise ValueError
+    dengan pesan yang jelas kalau teks tidak valid.
     """
     teks = _normalkan((teks or "").strip())
     if not teks:
@@ -176,14 +178,51 @@ def parse_fungsi(teks: str | None) -> Callable[[float], float]:
                 "Format persamaan tidak valid. Pakai satu tanda '=', "
                 "contoh: x^3 - x - 1 = 0"
             )
-        # pindahkan sisi kanan ke kiri: kiri - kanan = 0
-        ekspresi = _baca(bagian[0], teks) - _baca(bagian[1], teks)
+        kiri, kanan = _baca(bagian[0], teks), _baca(bagian[1], teks)
+        if kanan.is_zero:
+            ekspresi = kiri
+        else:
+            # pindahkan sisi kanan ke kiri: kiri - kanan = 0
+            with sp.evaluate(False):
+                ekspresi = kiri - kanan
     else:
         ekspresi = _baca(teks, teks)
 
     # hanya boleh ada variabel x
     if not isinstance(ekspresi, sp.Basic) or not ekspresi.free_symbols <= {X}:
         raise ValueError("Fungsi hanya boleh memakai variabel x.")
+    return ekspresi
+
+
+class _PencetakLatex(LatexPrinter):
+    """Pencetak LaTeX yang menulis 3.0 sebagai 3 tanpa mengubah struktur rumus."""
+
+    def _print_Float(self, expr):
+        nilai = float(expr)
+        if nilai.is_integer() and abs(nilai) < 1e15:
+            return str(int(nilai))
+        return super()._print_Float(expr)
+
+
+def ke_latex(teks: str | None) -> str:
+    """Ubah teks f(x) menjadi kode LaTeX untuk pratinjau rumus di aplikasi.
+
+    Urutan suku dipertahankan seperti yang diketik (x^3 - x - 2 tetap
+    x^3 - x - 2). Raise ValueError kalau teks tidak valid.
+    """
+    ekspresi = parse_ekspresi(teks)
+    try:
+        return _PencetakLatex({"order": "none", "ln_notation": True, "min": -6, "max": 15}).doprint(ekspresi)
+    except Exception:
+        raise ValueError("Rumus f(x) tidak bisa ditampilkan.") from None
+
+
+def parse_fungsi(teks: str | None) -> Callable[[float], float]:
+    """Ubah string seperti "x^3 - x - 2" menjadi fungsi Python f(x).
+
+    Raise ValueError dengan pesan yang jelas kalau teks tidak valid.
+    """
+    ekspresi = parse_ekspresi(teks)
 
     fungsi_numpy = sp.lambdify(X, ekspresi, modules="numpy", printer=_PencetakNumpy, docstring_limit=0)
 

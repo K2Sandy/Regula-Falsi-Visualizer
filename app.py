@@ -3,12 +3,12 @@
 Jalankan dengan:  streamlit run app.py
 """
 
-import pandas as pd
 import streamlit as st
 
 from contoh import DAFTAR_CONTOH, cari_contoh
-from grafik import buat_grafik
+from grafik import buat_grafik, buat_grafik_konvergensi
 from interval import cari_interval
+from laporan import tabel_ke_dataframe
 from parsing import ke_latex, parse_fungsi
 from regula_falsi import regula_falsi
 from style import footer, judul, terapkan_gaya
@@ -61,6 +61,42 @@ def isi_interval_otomatis() -> None:
     )
 
 
+def _input_sekarang() -> tuple:
+    keadaan = st.session_state
+    return (
+        keadaan.get("f_teks", ""), keadaan.get("a"), keadaan.get("b"),
+        keadaan.get("tol"), keadaan.get("max_iter"),
+    )
+
+
+def hitung_akar() -> None:
+    """Jalankan Regula Falsi dengan isian sekarang dan simpan hasilnya.
+
+    Hasil disimpan di session_state supaya tidak hilang saat pengguna
+    berpindah tab atau menggeser slider (Streamlit menjalankan ulang skrip).
+    """
+    st.session_state.pop("hitungan", None)
+    st.session_state.pop("galat", None)
+    f_teks, a, b, tol, max_iter = _input_sekarang()
+    if not f_teks.strip() or None in (a, b, tol, max_iter):
+        st.session_state.galat = (
+            "warning",
+            "Lengkapi semua isian: fungsi, batas bawah, batas atas, toleransi, dan iterasi maksimum.",
+        )
+        return
+    try:
+        f = parse_fungsi(f_teks)
+        hasil = regula_falsi(f, a, b, tol, int(max_iter))
+    except ValueError as e:
+        st.session_state.galat = ("error", str(e))
+        return
+    st.session_state.hitungan = {
+        "input": _input_sekarang(),
+        "f": f, "latex": ke_latex(f_teks),
+        "a": a, "b": b, "tol": tol, "hasil": hasil,
+    }
+
+
 # ---------- input ----------
 with st.container(key="kartu_input"):
     kiri, kanan = st.columns([3, 2], gap="medium")
@@ -103,7 +139,7 @@ with st.container(key="kartu_input"):
     )
 
     tombol_kiri, tombol_kanan, _ = st.columns([1, 1, 3], gap="small")
-    hitung = tombol_kiri.button("Hitung akar", type="primary", width="stretch")
+    tombol_kiri.button("Hitung akar", type="primary", on_click=hitung_akar, width="stretch")
     tombol_kanan.button(
         "Cari interval",
         on_click=isi_interval_otomatis,
@@ -115,44 +151,48 @@ with st.container(key="kartu_input"):
         jenis, pesan = st.session_state.pop("pesan_interval")
         {"error": st.error, "warning": st.warning, "info": st.info}[jenis](pesan)
 
-# ---------- proses & hasil ----------
-if hitung:
-    if not f_teks.strip() or None in (a, b, tol, max_iter):
-        st.warning("Lengkapi semua isian: fungsi, batas bawah, batas atas, toleransi, dan iterasi maksimum.")
-        st.stop()
+# ---------- hasil ----------
+if "galat" in st.session_state:
+    jenis, pesan = st.session_state.galat
+    {"error": st.error, "warning": st.warning}[jenis](pesan)
 
-    try:
-        f = parse_fungsi(f_teks)
-        hasil = regula_falsi(f, a, b, tol, int(max_iter))
-    except ValueError as e:
-        st.error(str(e))
+hitungan = st.session_state.get("hitungan")
+if hitungan:
+    f, hasil = hitungan["f"], hitungan["hasil"]
+    a0, b0, tol0 = hitungan["a"], hitungan["b"], hitungan["tol"]
+
+    st.subheader("Hasil")
+    st.markdown(f"Untuk $f(x) = {hitungan['latex']}$ pada $[{a0:g},\\ {b0:g}]$ dengan toleransi ${tol0:g}$.")
+    if hitungan["input"] != _input_sekarang():
+        st.caption("Isian sudah berubah sejak hasil ini dihitung. Tekan **Hitung akar** untuk memperbarui.")
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Akar", f"{hasil.akar:.8g}")
+    m2.metric("Jumlah iterasi", hasil.iterasi)
+    m3.metric("Error akhir", "-" if hasil.error is None else f"{hasil.error:.3e}")
+    m4.metric("f(akar)", f"{f(hasil.akar):.3e}")
+
+    if hasil.konvergen:
+        st.success(hasil.alasan)
     else:
-        st.subheader("Hasil")
+        st.warning(hasil.alasan + " Coba tambah iterasi maksimum atau perbesar toleransi.")
 
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Akar", f"{hasil.akar:.8g}")
-        m2.metric("Jumlah iterasi", hasil.iterasi)
-        m3.metric(
-            "Error akhir",
-            "-" if hasil.error is None else f"{hasil.error:.3e}",
-        )
+    tab_grafik, tab_tabel, tab_konvergensi = st.tabs(["Grafik", "Tabel iterasi", "Konvergensi"])
 
-        if hasil.konvergen:
-            st.success(hasil.alasan)
+    with tab_grafik:
+        st.pyplot(buat_grafik(f, a0, b0, hasil), width="stretch")
+
+    with tab_tabel:
+        if hasil.tabel:
+            st.dataframe(tabel_ke_dataframe(hasil), hide_index=True, width="stretch")
         else:
-            st.warning(hasil.alasan)
+            st.info("Tidak ada iterasi, akar sudah ada di ujung interval.")
 
-        kiri, kanan = st.columns(2)
-
-        with kiri:
-            st.subheader("Tabel iterasi")
-            if hasil.tabel:
-                st.dataframe(pd.DataFrame(hasil.tabel), hide_index=True)
-            else:
-                st.info("Tidak ada iterasi, akar sudah ada di ujung interval.")
-
-        with kanan:
-            st.subheader("Grafik")
-            st.pyplot(buat_grafik(f, a, b, hasil))
+    with tab_konvergensi:
+        st.pyplot(buat_grafik_konvergensi(hasil, tol0), width="stretch")
+        st.caption(
+            "Error relatif turun tiap iterasi. Iterasi berhenti saat garis biru "
+            "masuk ke area kuning di bawah garis toleransi."
+        )
 
 footer()

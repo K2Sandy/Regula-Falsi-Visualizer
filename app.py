@@ -6,9 +6,9 @@ Jalankan dengan:  streamlit run app.py
 import streamlit as st
 
 from contoh import DAFTAR_CONTOH, cari_contoh
-from grafik import buat_grafik, buat_grafik_konvergensi
+from grafik import buat_grafik, buat_grafik_iterasi, buat_grafik_konvergensi
 from interval import cari_interval
-from laporan import tabel_ke_dataframe
+from laporan import jelaskan_iterasi, tabel_ke_dataframe
 from parsing import ke_latex, parse_fungsi
 from regula_falsi import regula_falsi
 from style import footer, judul, terapkan_gaya
@@ -90,6 +90,7 @@ def hitung_akar() -> None:
     except ValueError as e:
         st.session_state.galat = ("error", str(e))
         return
+    st.session_state.nomor_iterasi = 1   # penelusur iterasi mulai dari awal lagi
     st.session_state.hitungan = {
         "input": _input_sekarang(),
         "f": f, "latex": ke_latex(f_teks),
@@ -177,7 +178,29 @@ if hitungan:
     else:
         st.warning(hasil.alasan + " Coba tambah iterasi maksimum atau perbesar toleransi.")
 
-    tab_grafik, tab_tabel, tab_konvergensi = st.tabs(["Grafik", "Tabel iterasi", "Konvergensi"])
+    tab_langkah, tab_grafik, tab_tabel, tab_konvergensi = st.tabs(
+        ["Langkah demi langkah", "Grafik", "Tabel iterasi", "Konvergensi"]
+    )
+
+    with tab_langkah:
+        jumlah = len(hasil.tabel)
+        if jumlah == 0:
+            st.info("Tidak ada iterasi, akar sudah ada di ujung interval.")
+        else:
+            if jumlah > 1:
+                nomor = st.slider(
+                    "Geser untuk melihat tiap iterasi",
+                    min_value=1, max_value=jumlah, key="nomor_iterasi",
+                )
+            else:
+                nomor = 1
+            kiri, kanan = st.columns([3, 2], gap="large")
+            kiri.pyplot(buat_grafik_iterasi(f, a0, b0, hasil, nomor), width="stretch")
+            with kanan, st.container(key="kartu_langkah"):
+                st.markdown(f"#### Iterasi {nomor}")
+                st.markdown("\n".join(
+                    f"{i}. {kalimat}" for i, kalimat in enumerate(jelaskan_iterasi(hasil, nomor, tol0), 1)
+                ))
 
     with tab_grafik:
         st.pyplot(buat_grafik(f, a0, b0, hasil), width="stretch")

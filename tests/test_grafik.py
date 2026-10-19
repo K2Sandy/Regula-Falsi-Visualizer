@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from matplotlib.figure import Figure
 
-from grafik import buat_grafik, buat_grafik_iterasi
+from grafik import buat_grafik, buat_grafik_iterasi, buat_grafik_konvergensi
 from parsing import parse_fungsi
 from regula_falsi import regula_falsi
 
@@ -135,3 +135,29 @@ def test_nomor_iterasi_di_luar_tabel_ditolak(nomor):
     f, hasil = _hasil_kubik()
     with pytest.raises(ValueError, match="tidak ada"):
         buat_grafik_iterasi(f, 1, 2, hasil, nomor)
+
+
+# ---------- buat_grafik_konvergensi ----------
+
+
+def test_konvergensi_skala_log_dengan_garis_toleransi():
+    _, hasil = _hasil_kubik()
+    fig = buat_grafik_konvergensi(hasil, 1e-4)
+    ax = fig.axes[0]
+    assert ax.get_yscale() == "log"
+    assert "toleransi = 0.0001" in _label(fig)
+
+
+def test_konvergensi_error_mulai_iterasi_kedua():
+    _, hasil = _hasil_kubik()
+    fig = buat_grafik_konvergensi(hasil, 1e-4)
+    garis = next(g for g in fig.axes[0].lines if g.get_label() == "error relatif")
+    assert list(garis.get_xdata()) == list(range(2, hasil.iterasi + 1))
+    assert garis.get_ydata()[-1] < 1e-4
+
+
+def test_konvergensi_tanpa_iterasi_menampilkan_pesan():
+    hasil = regula_falsi(lambda x: x - 1, 1, 2)
+    fig = buat_grafik_konvergensi(hasil, 1e-4)
+    assert fig.axes[0].get_legend() is None
+    assert "Tidak ada error" in fig.axes[0].texts[0].get_text()

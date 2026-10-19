@@ -66,6 +66,46 @@ Falsi, satu ujung interval bisa "macet" sementara ujung lainnya mendekati akar.
 Karena itu pada beberapa fungsi konvergensinya lebih lambat dari yang
 dibayangkan, dan kriteria berhenti memakai selisih `c`, bukan lebar interval.
 
+## Kasus lambat: f(x) = x^10 - 1 pada [0, 1.3]
+
+Contoh ini ada di pilihan "Kasus lambat" di aplikasi. Akarnya jelas `x = 1`,
+tetapi Regula Falsi butuh 39 iterasi dengan toleransi 0.0001.
+
+| Iter | c        | Error    |
+|------|----------|----------|
+| 1    | 0.094300 | -        |
+| 2    | 0.181759 | 4.81e-01 |
+| 10   | 0.686943 | 6.90e-02 |
+| 20   | 0.955334 | 1.25e-02 |
+| 39   | 0.999689 | 9.54e-05 |
+
+Penyebabnya sama dengan contoh sebelumnya, tetapi jauh lebih parah: `f(1.3)`
+sekitar 12.8 sedangkan `f` di dekat 0 hanya sekitar -1, jadi garis potong
+selalu jatuh dekat ujung kiri dan `b` macet di 1.3 selama 39 iterasi.
+
+Ada pelajaran kedua: iterasi berhenti karena error relatif `9.54e-05` sudah di
+bawah toleransi, padahal selisih dengan akar sebenarnya `|0.999689 - 1|` masih
+`3.1e-04`. Error relatif hanya mengukur seberapa jauh `c` bergeser dari iterasi
+sebelumnya, bukan jarak ke akar. Saat konvergensinya lambat, `c` bergeser
+sedikit-sedikit sehingga error terlihat kecil lebih awal. Tab **Konvergensi**
+di aplikasi memperlihatkan ini: garis `|f(c)|` masih jauh di atas toleransi.
+
+## Mencari interval otomatis
+
+Tombol **Cari interval** memakai `cari_interval` di `interval.py`:
+
+1. Rentang -10 sampai 10 dibagi menjadi 400 potongan selebar 0.05.
+2. Tiap potongan yang `f`-nya berbeda tanda di kedua ujung menjadi kandidat.
+   Titik di luar domain fungsi (misalnya `ln(x)` untuk `x <= 0`) dilewati.
+3. Perubahan tanda belum tentu akar. `1/x` berganti tanda di `x = 0` karena
+   kutub, bukan akar. Jadi tiap kandidat dicek dengan 40 langkah bagi dua: di
+   sekitar akar `|f|` mengecil, di sekitar kutub `|f|` justru membesar.
+4. Selang pertama yang lolos dipakai sebagai `a` dan `b`.
+
+Contoh: `(x + 3)(x - 1)(x - 4.5)` menghasilkan selang `[-3, -2.95]`,
+`[1, 1.05]`, dan `[4.5, 4.55]`. Akar yang berimpit (misalnya `x^2` di `x = 0`)
+tidak mengubah tanda `f`, jadi hanya ditemukan kalau tepat jatuh di titik grid.
+
 ## Format input fungsi
 
 Teks fungsi dibaca oleh `parsing.py` dan hanya menerima yang ada di daftar putih.
@@ -79,3 +119,5 @@ Teks fungsi dibaca oleh `parsing.py` dan hanya menerima yang ada di daftar putih
 - Simbol hasil salin-tempel seperti `−`, `×`, `÷`, `²`, `³`, `π`, dan `√`
   otomatis diubah ke bentuk biasa.
 - Maksimal 200 karakter. Teks di luar aturan ini ditolak dengan pesan error.
+- Aplikasi menampilkan pratinjau rumus (LaTeX) dari teks yang diketik, jadi
+  salah ketik seperti kurung yang tertukar langsung terlihat sebelum menghitung.

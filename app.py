@@ -6,34 +6,74 @@ Jalankan dengan:  streamlit run app.py
 import pandas as pd
 import streamlit as st
 
+from contoh import DAFTAR_CONTOH, cari_contoh
 from grafik import buat_grafik
-from parsing import parse_fungsi
+from parsing import ke_latex, parse_fungsi
 from regula_falsi import regula_falsi
 from style import footer, judul, terapkan_gaya
 
-st.set_page_config(page_title="Kalkulator Regula Falsi", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Regula Falsi Visualizer", page_icon="📈", layout="wide")
 
 terapkan_gaya()
 
 judul()
 
+
+def isi_contoh() -> None:
+    """Isi semua input dari contoh soal yang dipilih."""
+    nama = st.session_state.get("contoh")
+    if not nama:
+        return
+    contoh = cari_contoh(nama)
+    st.session_state.f_teks = contoh.fungsi
+    st.session_state.a = float(contoh.a)
+    st.session_state.b = float(contoh.b)
+    st.session_state.tol = contoh.tol
+    st.session_state.max_iter = contoh.max_iter
+
+
 # ---------- input ----------
-st.subheader("Input")
+with st.container(key="kartu_input"):
+    kiri, kanan = st.columns([3, 2], gap="medium")
+    f_teks = kiri.text_input(
+        "Fungsi f(x)",
+        key="f_teks",
+        placeholder="Contoh: x^3 - x - 2   atau   e^x = 3",
+        help="Pakai x sebagai variabel. Boleh ^ untuk pangkat, 2x untuk 2*x, dan '= 0'. "
+        "Fungsi: sin cos tan exp ln log10 sqrt abs, konstanta e dan pi.",
+    )
+    kanan.selectbox(
+        "Contoh soal",
+        options=[contoh.nama for contoh in DAFTAR_CONTOH],
+        index=None,
+        key="contoh",
+        placeholder="Pilih untuk mengisi otomatis",
+        on_change=isi_contoh,
+    )
 
-f_teks = st.text_input(
-    "Fungsi f(x)",
-    value="",
-    placeholder="Contoh: x^3 - x - 2   atau   e^x - 3 = 0",
-    help="Contoh: x^3 - x - 2, cos(x) - x, exp(x) - 3*x, e^x - 3. Boleh pakai '= 0'.",
-)
+    # pratinjau: tampilkan rumus seperti yang dibaca aplikasi
+    if f_teks.strip():
+        try:
+            rumus = ke_latex(f_teks)
+        except ValueError as e:
+            st.caption(f"⚠️ {e}")
+        else:
+            with st.container(key="pratinjau"):
+                st.markdown(f"$f(x) = {rumus}$")
+    if st.session_state.get("contoh"):
+        st.caption(cari_contoh(st.session_state.contoh).catatan)
 
-kol1, kol2, kol3, kol4 = st.columns(4)
-a = kol1.number_input("Batas bawah (a)", value=None, placeholder="Contoh: 1", format="%g")
-b = kol2.number_input("Batas atas (b)", value=None, placeholder="Contoh: 2", format="%g")
-tol = kol3.number_input("Toleransi error", value=None, min_value=0.0, placeholder="Contoh: 0.0001", format="%g")
-max_iter = kol4.number_input("Iterasi maksimum", value=None, min_value=1, step=1, placeholder="Contoh: 100")
+    kol1, kol2, kol3, kol4 = st.columns(4)
+    a = kol1.number_input("Batas bawah (a)", value=None, key="a", placeholder="Contoh: 1", format="%g")
+    b = kol2.number_input("Batas atas (b)", value=None, key="b", placeholder="Contoh: 2", format="%g")
+    tol = kol3.number_input(
+        "Toleransi error", value=None, key="tol", min_value=0.0, placeholder="Contoh: 0.0001", format="%g"
+    )
+    max_iter = kol4.number_input(
+        "Iterasi maksimum", value=None, key="max_iter", min_value=1, step=1, placeholder="Contoh: 100"
+    )
 
-hitung = st.button("Hitung", type="primary")
+    hitung = st.button("Hitung akar", type="primary")
 
 # ---------- proses & hasil ----------
 if hitung:
@@ -74,6 +114,5 @@ if hitung:
         with kanan:
             st.subheader("Grafik")
             st.pyplot(buat_grafik(f, a, b, hasil))
-
 
 footer()

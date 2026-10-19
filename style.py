@@ -65,7 +65,17 @@ h1, h2, h3 { letter-spacing: -0.03em; }
   border-radius: 14px !important;
   box-shadow: var(--bayangan);
 }
-.st-key-kartu_input { padding: 1.2rem 1.3rem 1.3rem; }
+.st-key-kartu_input { padding: 1.2rem 1.3rem 1.3rem; margin-top: 1.6rem; }
+.st-key-pratinjau {
+  background: #fff6cf;
+  border-left: 5px solid var(--stabilo);
+  border-radius: 8px;
+  padding: .55rem 1rem !important;
+  overflow-x: auto;
+}
+.st-key-pratinjau [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
+.st-key-pratinjau p { margin: 0; }
+.st-key-pratinjau .katex { font-size: 1.3em; }
 .st-key-kartu_rumus { padding: 1rem 1.2rem .4rem; transform: rotate(-1.2deg); }
 .st-key-kartu_kosong { padding: 1.4rem 1.5rem; }
 .st-key-kartu_rumus p { color: var(--pensil); margin-bottom: 0; }
